@@ -121,18 +121,20 @@ test_net_info() {
     ip a add "${ip}/${__prefix}" dev "$dev" > /dev/null 2>&1
     for ((((idx = ${#orig_route[@]} - 1)); idx >= 0; )); do
       line="${orig_route[idx]}"
-      ip r add "${line}"
+      ip r add "${line}" > /dev/null 2>&1
       ((idx--))
     done
+    echo "Restored."
+    echo
   fi
 }
 
-if [ "$(id -u)" -ne 0 ]; then
-  echo "Please run as root." >&2
-  exit 1
-fi
-
 main() {
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run as root." >&2
+    exit 1
+  fi
+
   get_net_info
 
   if [ $# -gt 0 ]; then
