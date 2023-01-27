@@ -57,7 +57,9 @@ get_net_info() {
     gw="openvz"
     dev="${route[2]}"
     ip="${route[4]}"
-    echo "Can not get gateway."  
+    echo
+    echo "Can not get gateway. Is it OpenVZ?"  
+    echo
     exit 1  
   fi
   read -ra link <<< "$(ip -o l | grep "${dev}")"
