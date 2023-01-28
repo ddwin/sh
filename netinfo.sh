@@ -64,9 +64,7 @@ get_net_info() {
   read -r mac <<< "$(grep -Po '..:..:..:..:..:..' <<< "${link[@]}")"
   read -ra address <<< "$(ip -o -4 a | grep "${ip}")"
   IFS="/" read -r dummy prefix <<< "${address[3]}"
-  __prefix=$prefix
-  [ -z "$prefix" ] && __prefix=32
-  echo $__prefix
+  [ -z "$prefix" ] && __prefix=32 || __prefix=$prefix
   if [ "$prefix" = 32 ] || [ -z "$prefix" ]; then
     get_prefix_from_fib
   fi
@@ -132,7 +130,7 @@ main() {
 
   get_net_info
 
-  if [ "$__prefix" = 32 ] || [ -z "$__prefix" ]; then
+  if [ "${__prefix}" = 32 ]; then
     read -r -p "Do you want to test information [y/N]? " answer
     case ${answer:0:1} in
       y | Y) test_net_info ;;
