@@ -57,17 +57,15 @@ get_net_info() {
     gw="openvz"
     dev="${route[2]}"
     ip="${route[4]}"
-    echo
-    echo "Can not get gateway. Is it OpenVZ?"  
-    echo
-    exit 1  
+    echo "Can not get gateway."
+    exit 1
   fi
   read -ra link <<< "$(ip -o l | grep "${dev}")"
   read -r mac <<< "$(grep -Po '..:..:..:..:..:..' <<< "${link[@]}")"
   read -ra address <<< "$(ip -o -4 a | grep "${ip}")"
   IFS="/" read -r dummy prefix <<< "${address[3]}"
   __prefix=$prefix
-   [ -z "$prefix" ] && __prefix=32
+  [ -z "$prefix" ] && __prefix=32
   if [ "$prefix" = 32 ] || [ -z "$prefix" ]; then
     get_prefix_from_fib
   fi
@@ -77,8 +75,7 @@ get_net_info() {
   ip_int=$(ip_to_int "$ip")
   net_int=$((msk_int & ip_int))
   net=$(int_to_ip "$net_int")
-  echo "============================================================================================"
-  echo "Use <./netinfo.sh test> to test the following information"
+  echo
   echo "============================================================================================"
   echo "Interface: $dev"
   echo "      MAC: $mac"
@@ -89,22 +86,19 @@ get_net_info() {
   echo "   Subnet: $net/$prefix"
   echo "============================================================================================"
   echo
-  echo "wget --no-check-certificate https://moeclub.org/attachment/LinuxShell/InstallNET.sh"
+  echo "For https://moeclub.org/attachment/LinuxShell/InstallNET.sh"
   echo
   echo "--ip-addr $ip --ip-gate $gw --ip-mask $msk"
   echo
-  echo "wget --no-check-certificate https://raw.githubusercontent.com/bohanyang/debi/master/debi.sh"
+  echo "For https://raw.githubusercontent.com/bohanyang/debi/master/debi.sh"
   echo
   echo "--ip $ip --gateway $gw --netmask $msk"
   echo
 }
 
 test_net_info() {
-  echo "Press Ctrl+C to cancel. Other key to test ..."
-  read -r key
   trap "" INT
   echo "Start test ..."
-  echo
   IFS=$'\n' mapfile -t orig_route < <(ip r)
   ip a del "$ip" dev "$dev" > /dev/null 2>&1
   ip r flush table main > /dev/null 2>&1
@@ -123,11 +117,9 @@ test_net_info() {
     ip a add "${ip}/${__prefix}" dev "$dev" > /dev/null 2>&1
     for ((((idx = ${#orig_route[@]} - 1)); idx >= 0; )); do
       line="${orig_route[idx]}"
-      ip r add "${line}" > /dev/null 2>&1
+      ip r add "${line}"
       ((idx--))
     done
-    echo "Restored."
-    echo
   fi
 }
 
@@ -139,8 +131,14 @@ main() {
 
   get_net_info
 
-  if [ $# -gt 0 ]; then
-    test_net_info
+  if [ "$__prefix" = 32 ] || [ -z "$__prefix" ]; then
+    while true; do
+      read -r -p "Do you want to test information [y/N]? " answer
+      case ${answer:0:1} in
+        y | Y) test_net_info ;;
+        *) exit ;;
+      esac
+    done
   fi
 }
 
