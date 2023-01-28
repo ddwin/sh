@@ -57,7 +57,7 @@ get_net_info() {
     gw="openvz"
     dev="${route[2]}"
     ip="${route[4]}"
-    echo "Can not get gateway. Is it OpenVZ?"
+    echo "Can not get gateway."
     exit 1
   fi
   read -ra link <<< "$(ip -o l | grep "${dev}")"
@@ -66,6 +66,7 @@ get_net_info() {
   IFS="/" read -r dummy prefix <<< "${address[3]}"
   __prefix=$prefix
   [ -z "$prefix" ] && __prefix=32
+  echo $__prefix
   if [ "$prefix" = 32 ] || [ -z "$prefix" ]; then
     get_prefix_from_fib
   fi
@@ -132,13 +133,10 @@ main() {
   get_net_info
 
   if [ "$__prefix" = 32 ] || [ -z "$__prefix" ]; then
-    while true; do
-      read -r -p "Do you want to test information [y/N]? " answer
-      case ${answer:0:1} in
-        y | Y) test_net_info ;;
-        *) exit ;;
-      esac
-    done
+    read -r -p "Do you want to test information [y/N]? " answer
+    case ${answer:0:1} in
+      y | Y) test_net_info ;;
+    esac
   fi
 }
 
